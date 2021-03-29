@@ -1,0 +1,1 @@
+Very simple twitch chat is read only. It displays time, username in colour and the message. The latest message is on top allways. The number of messages displayed is limited to 30 messages. Use ```?channel=channelname``` to set the channel that should be listend to.
