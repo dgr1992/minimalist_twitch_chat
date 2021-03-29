@@ -4,13 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Twitch Chat</title>
-  <link rel="stylesheet" href="https://ez-css.now.sh">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div>
+    <button onclick="toggleDarkMode()">Toggle dark mode</button>
     <small id="status"></small>
     <br>
-    <small>Total | Displaying: </small><small id="count">Waiting for count...</small>
+    <small>Total | Displaying: </small><small id="count">Waiting for messages...</small>
+    <hr>
     <div id="msgs">
     </div>
   </div>

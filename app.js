@@ -30,6 +30,11 @@ function getRandomColor() {
   return color;
 }
 
+function toggleDarkMode() {
+  var element = document.body;
+  element.classList.toggle("dark-mode");
+}
+
 client.on('message', (wat, tags, message, self) => {
   if (self) return;
   const { username } = tags;
@@ -40,7 +45,7 @@ client.on('message', (wat, tags, message, self) => {
 
   // Time
   let currentDate = new Date();
-  let time = currentDate.getHours() + ":" + currentDate.getMinutes();
+  let time = currentDate.getHours() + ":" + (currentDate.getMinutes()<10?'0':'') + currentDate.getMinutes();
   let containerTime = document.createElement("span");
   let nodeTime = document.createTextNode (time);
   containerTime.appendChild(nodeTime);
@@ -66,7 +71,6 @@ client.on('message', (wat, tags, message, self) => {
   let containerMsg = document.createElement("span");
   let nodeMsg = document.createTextNode (message);
   containerMsg.appendChild(nodeMsg);
-  // containerMsg.style.color = "blue";
 
   // Create element to display
   var container = document.createElement("div");
