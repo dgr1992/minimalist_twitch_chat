@@ -45,7 +45,7 @@ client.on('message', (wat, tags, message, self) => {
 
   // Time
   let currentDate = new Date();
-  let time = currentDate.getHours() + ":" + (currentDate.getMinutes()<10?'0':'') + currentDate.getMinutes();
+  let time = (currentDate.getHours()<10?'0':'') + currentDate.getHours() + ":" + (currentDate.getMinutes()<10?'0':'') + currentDate.getMinutes();
   let containerTime = document.createElement("span");
   let nodeTime = document.createTextNode (time);
   containerTime.appendChild(nodeTime);
