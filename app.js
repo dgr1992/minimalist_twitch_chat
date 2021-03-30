@@ -20,15 +20,17 @@ client.connect().then(() => {
 let users = {};
 let msgCounter = 0;
 var dictUserColour = {};
+var dictUserGiftCount = {};
 
-function getRandomColor() {
+function getRandomColour() {
   var letters = '0123456789ABCDEF';
   var color = '#';
   for (var i = 0; i < 6; i++) {
     color += letters[Math.floor(Math.random() * 16)];
   }
+  // Regenerate if colour is black
   if (color == '#000000'){
-    color = getRandomColor();
+    color = getRandomColour();
   }
   return color;
 }
@@ -55,7 +57,7 @@ function getUserColour(username, colour){
   if (colour == null) {
     colour = dictUserColour[username];
     if ( colour == null) {
-      colour = getRandomColor();
+      colour = getRandomColour();
       dictUserColour[username] = colour;
     }
   }
@@ -63,9 +65,11 @@ function getUserColour(username, colour){
   return colour;
 }
 
-function createTimeContainer(){
+function createTimeElement(){
+  // Create time string in the format hh:mm
   let currentDate = new Date();
   let time = (currentDate.getHours()<10?'0':'') + currentDate.getHours() + ":" + (currentDate.getMinutes()<10?'0':'') + currentDate.getMinutes();
+  // Create element and add time
   let containerTime = document.createElement("span");
   let nodeTime = document.createTextNode (time);
   containerTime.appendChild(nodeTime);
@@ -73,25 +77,17 @@ function createTimeContainer(){
   return containerTime;
 }
 
-function createUserContainer(username, displayName, color){
+function createUserElement(username, displayName, colour){
   let containerUser = document.createElement("span");
+  // Add user display name and set the colour
   let nodeUserDisplayName = document.createTextNode (displayName);
   containerUser.appendChild(nodeUserDisplayName);
-  containerUser.style.color = getUserColour(username, color);
+  containerUser.style.color = getUserColour(username, colour);
 
   return containerUser;
 }
 
-function createEventTypeContainer(username, displayName, color){
-  let containerUser = document.createElement("span");
-  let nodeUserDisplayName = document.createTextNode (displayName);
-  containerUser.appendChild(nodeUserDisplayName);
-  containerUser.style.color = getUserColour(username, color);
-
-  return containerUser;
-}
-
-function createMessageContainer(message){
+function createMessageElement(message){
   let containerMsg = document.createElement("span");
   let nodeMsg = document.createTextNode (message);
   containerMsg.appendChild(nodeMsg);
@@ -99,7 +95,7 @@ function createMessageContainer(message){
   return containerMsg;
 }
 
-function createMessageElement(containerTime, containerUser, containerMsg){
+function createChatMessageElement(containerTime, containerUser, containerMsg){
   // Create element to display - Format: "[Time] [userDisplayName]: [message]"
   var container = document.createElement("div");
   container.appendChild(containerTime);
@@ -122,16 +118,16 @@ client.on('message', (wat, tags, message, self) => {
   if (username.includes("bot")) return;
 
   // Time
-  let containerTime = createTimeContainer();
+  let containerTime = createTimeElement();
 
   // Username
-  let containerUser = createUserContainer(username, displayName, color);
+  let containerUser = createUserElement(username, displayName, color);
 
   // Message
-  let containerMsg = createMessageContainer(message);
+  let containerMsg = createMessageElement(message);
 
   // Create element to display
-  var container = createMessageElement(containerTime, containerUser, containerMsg);
+  var container = createChatMessageElement(containerTime, containerUser, containerMsg);
   
   msgsElement.prepend(container);
   
@@ -139,22 +135,79 @@ client.on('message', (wat, tags, message, self) => {
 });
 
 function createEventContainer(strEventType, strMessage){
+  var container = document.createElement("div");
+  
+  if (strEventType == "Sub"){
+    console.log(strMessage);
+  }
+  else if (strEventType == "Sub Gift"){
+    console.log(strMessage);
+  } 
+  else if (strEventType == "Cheer"){
+    console.log(strMessage);
+  }
+  else if (strEventType == "Raid"){
+    console.log(strMessage);
+  }
 
+  return container
 }
 
 client.on("subscription", (channel, username, method, message, userstate) => {
-  console.log("sub");
+  var strMessage = username + " stürmt mit " + viewers + " zuschauern!";
+  
+  var container = createEventContainer("Sub", strMessage);
+
+  msgsElement.prepend(container);
+  updateMessageBuffer();
+});
+
+client.on("subgift", (channel, username, streakMonths, recipient, methods, userstate) => {
+  // Put message in chat with number of gifted subs
+  if (dictUserGiftCount[username] == null || dictUserGiftCount[username] == 0){
+    let giftCount = Number(~~userstate["msg-param-sender-count"]);
+    let senderDisplayName = ~~userstate["msg-param-sender-display-name"];
+
+    var strMessage = senderDisplayName + " hat " + giftCount + " Abos verschenkt!";
+    var container = createEventContainer("Sub Gift", strMessage);
+
+    msgsElement.prepend(container);
+    updateMessageBuffer();
+  }
+
+  // Count down number of events
+  if (dictUserGiftCount[username] != null && dictUserGiftCount[username] > 0){
+    dictUserGiftCount[username] -= 1;
+  }
 });
 
 client.on("cheer", (channel, userstate, message) => {
-  const { username } = userstate;
-  const { color } = userstate;
   const { 'display-name': displayName } = userstate;
   const { bits } = userstate;
-  message = message.replace("cheer"+bits, "");
-  console.log(username + " ; " + color + " ; " + displayName + " ; " + bits + " ; " + message);
+
+  // remove cheer icon an bits from message
+  bits = bits.toString();
+  var n = str.indexOf(bits);
+  message = message.slice(n + bits.length)
+
+  // Create message
+  var strMessage = displayName + " hat " + bits + " spendiert!";
+  // Append custom message if given
+  if (message.length > 0){
+    strMessage += " - " + message;
+  }
+
+  var container = createEventContainer("Cheer", strMessage);
+
+  msgsElement.prepend(container);
+  updateMessageBuffer();
 });
 
 client.on("raided", (channel, username, viewers) => {
-  console.log("raided");
+  var strMessage = username + " stürmt mit " + viewers + " zuschauern!";
+
+  var container = createEventContainer("Raid", strMessage);
+
+  msgsElement.prepend(container);
+  updateMessageBuffer();
 });
