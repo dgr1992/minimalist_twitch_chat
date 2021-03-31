@@ -5,7 +5,7 @@ const countElement = document.querySelector('#count');
 
 const params = new URLSearchParams(window.location.search);
 const channel = params.get('channel') || 'd7gr';
-const addhour = Number(params.get('addhour')) || 0;
+const addhour = Number(params.get('addhours')) || 0;
 const client = new tmi.Client({
   connection: {
     secure: true,
