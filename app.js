@@ -144,8 +144,8 @@ client.on('message', (wat, tags, message, self) => {
 
   if (username.includes("bot")) return;
 
+  // the cleaned html message - removed html messages
   let cleanMessage = sanitizeHTML(message)
-  console.log("Clean MEssage", cleanMessage, 'from', message);
 
   // Time
   let containerTime = createTimeElement();
@@ -153,7 +153,7 @@ client.on('message', (wat, tags, message, self) => {
   // Username
   let containerUser = createUserElement(username, displayName, color);
 
-  // Message
+  // Message - enriched with emotes via getMessages, based on the escaped message
   let containerMsg = createUnsafeSpanElement(getMessageHTML(cleanMessage, tags));
 
   // Create element to display
@@ -199,7 +199,6 @@ function getMessageHTML(message, { emotes }) {
     message
   );
 
-  console.log("messageHTML", messageHTML)
   return messageHTML;
 }
 
