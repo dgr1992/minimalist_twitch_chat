@@ -5,6 +5,7 @@ const countElement = document.querySelector('#count');
 
 const params = new URLSearchParams(window.location.search);
 const channel = params.get('channel') || 'd7gr';
+const addhour = Number(params.get('addhour')) || 0;
 const client = new tmi.Client({
   connection: {
     secure: true,
@@ -20,7 +21,8 @@ client.connect().then(() => {
 let users = {};
 let msgCounter = 0;
 var dictUserColour = {};
-var dictUserGiftCount = {};
+var dictSubGifter = {};
+var subCheckTimer = null;
 
 function getRandomColour() {
   var letters = '0123456789ABCDEF';
@@ -68,7 +70,14 @@ function getUserColour(username, colour){
 function createTimeElement(){
   // Create time string in the format hh:mm
   let currentDate = new Date();
-  let time = (currentDate.getHours()<10?'0':'') + currentDate.getHours() + ":" + (currentDate.getMinutes()<10?'0':'') + currentDate.getMinutes();
+
+  var minute = currentDate.getMinutes();
+  var hour = currentDate.getHours();
+
+  // fix time zone
+  hour += addhour;
+
+  let time = (hour<10?'0':'') + hour + ":" + (minute<10?'0':'') + minute;
   // Create element and add time
   let containerTime = createSpanElement(time);
 
@@ -93,7 +102,7 @@ function createSpanElement(message){
 function createChatMessageElement(containerTime, containerUser, containerMsg){
   // Create element to display - Format: "[Time] [userDisplayName]: [message]"
   /*
-  <div>
+  <div class="message">
     <span>[Time]</span><span> </span><span>[userDisplayName]</span><span>: </span><span>[message]</span>
   </div>
   */
@@ -140,20 +149,25 @@ function createEventContainer(strEventType, strMessage){
 
   //console.log('event',strEventType,strMessage)
 
+  /*
+  <div class="event">
+    <div class="event-message">
+      <span>[strEventType]</span><span class="message">[strMessage]</span>
+    </div>
+    <div class="event-type">
+      <span>Sub</span>
+    </div>
+  </div>
+  */
+
   var containerEvent = document.createElement("div");
   containerEvent.classList.value = "event";
-
-  var containerEventBackground = document.createElement("div");
-  containerEventBackground.classList.value = "event-background";
-
-  // Add event-background to event
-  containerEvent.appendChild(containerEventBackground);
 
   var containerEventMessage = document.createElement("div");
   containerEventMessage.classList.value = "event-message";
 
   // Add the event-message to event-background
-  containerEventBackground.appendChild(containerEventMessage);
+  containerEvent.appendChild(containerEventMessage);
 
   // Create time span and add to event-message
   var containerTimeSpan = createTimeElement();
@@ -164,7 +178,6 @@ function createEventContainer(strEventType, strMessage){
   containerMessageSpan.classList.value = "message";
   containerEventMessage.appendChild(containerMessageSpan);
 
-
   // Event type div
   var containerEventType = document.createElement("div");
   containerEventType.classList.value = "event-type";
@@ -172,26 +185,26 @@ function createEventContainer(strEventType, strMessage){
   containerEventType.appendChild(containerEventTypeSpan);
 
   // Add event-type to event
-  containerEventBackground.appendChild(containerEventType);
+  containerEvent.appendChild(containerEventType);
 
   if (strEventType == "Sub"){
-    console.log(strMessage);
+    //console.log(strMessage);
   }
   else if (strEventType == "Sub Gift"){
-    console.log(strMessage);
+    //console.log(strMessage);
   }
   else if (strEventType == "Cheer"){
-    console.log(strMessage);
+    //console.log(strMessage);
   }
   else if (strEventType == "Raid"){
-    console.log(strMessage);
+    //console.log(strMessage);
   }
 
   return containerEvent;
 }
 
 client.on("subscription", (channel, username, method, message, userstate) => {
-  var strMessage = username + " hat Abonniert!";
+  var strMessage = userstate["display-name"] + " hat Abonniert!";
 
   var container = createEventContainer("Sub", strMessage);
 
@@ -199,27 +212,57 @@ client.on("subscription", (channel, username, method, message, userstate) => {
   updateMessageBuffer();
 });
 
-client.on("subgift", (channel, username, streakMonths, recipient, methods, userstate) => {
-  // Put message in chat with number of gifted subs
-  if (dictUserGiftCount[username] == null || dictUserGiftCount[username] == 0){
-    let giftCount = Number(~~userstate["msg-param-sender-count"]);
-    let senderDisplayName = ~~userstate["msg-param-sender-display-name"];
 
-    var strMessage = senderDisplayName + " hat " + giftCount + " Abos verschenkt!";
-    var container = createEventContainer("Sub Gift", strMessage);
+function checkGiftSub(){
+  for (let username of Object.keys(dictSubGifter)){
+    if(dictSubGifter[username] != null)
+    var [lastAccess, count] = dictSubGifter[username];
 
-    msgsElement.prepend(container);
-    updateMessageBuffer();
+    // if no new gifts in the last x millisecond then show message and remove user from dict
+    if ((Date.now() - lastAccess) > 1000) {
+      var strMessage = username + " hat " + count;
+      if (count == 1){
+        strMessage += " Abo verschenkt!";
+      }
+      else {
+        strMessage += " Abos verschenkt!";
+      }
+      var container = createEventContainer("Sub Gift", strMessage);
+
+      msgsElement.prepend(container);
+      updateMessageBuffer();
+
+      delete dictSubGifter[username];
+    }
   }
 
-  // Count down number of events
-  if (dictUserGiftCount[username] != null && dictUserGiftCount[username] > 0){
-    dictUserGiftCount[username] -= 1;
+  // Stop timer if no more users in the dict
+  if (Object.keys(dictSubGifter).length == 0){
+    clearInterval(subCheckTimer);
+  }
+}
+
+client.on("subgift", (channel, username, streakMonths, recipient, methods, userstate) => {
+  var senderDisplayName = userstate["display-name"];
+  // Create dict entry
+  if (dictSubGifter[senderDisplayName] == null){
+    dictSubGifter[senderDisplayName] = [Date.now(), 0];
+    // activate timer to put message after received all events for this user
+    subCheckTimer = setInterval(checkGiftSub, 500);
+    //console.log("Create gifter " + senderDisplayName);
+  }
+
+  // Count number of gifts
+  if (dictSubGifter[senderDisplayName] != null){
+    var [lastAccess, count] = dictSubGifter[senderDisplayName];
+    dictSubGifter[senderDisplayName] = [Date.now(), count + 1];
+    //console.log("Gifter " + senderDisplayName + " add 1");
   }
 });
 
 client.on("cheer", (channel, userstate, message) => {
   const { 'display-name': displayName } = userstate;
+  //console.log(userstate);
   var { bits } = userstate;
 
   // remove cheer icon an bits from message
@@ -230,9 +273,9 @@ client.on("cheer", (channel, userstate, message) => {
   // Create message
   var strMessage = displayName + " hat " + bits + " spendiert!";
   // Append custom message if given
-  if (message.length > 0){
-    strMessage += " - " + message;
-  }
+  //if (message.length > 0){
+  //  strMessage += " - " + message;
+  //}
 
   var container = createEventContainer("Cheer", strMessage);
 
