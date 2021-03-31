@@ -75,7 +75,7 @@ function createTimeElement(){
   var hour = currentDate.getHours();
 
   // fix time zone
-  hour += addhour;
+  hour = (hour + addhour) % 24;
 
   let time = (hour<10?'0':'') + hour + ":" + (minute<10?'0':'') + minute;
   // Create element and add time
