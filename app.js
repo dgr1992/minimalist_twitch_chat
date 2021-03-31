@@ -172,7 +172,7 @@ function createEventContainer(strEventType, strMessage){
   containerEventType.appendChild(containerEventTypeSpan);
 
   // Add event-type to event
-  containerEventMessage.appendChild(containerEventType);
+  containerEventBackground.appendChild(containerEventType);
 
   if (strEventType == "Sub"){
     console.log(strMessage);
