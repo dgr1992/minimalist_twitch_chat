@@ -232,12 +232,12 @@ client.on("cheer", (channel, userstate, message) => {
   const { bits } = userstate;
 
   // remove cheer icon an bits from message
-  bits = bits.toString();
-  var n = str.indexOf(bits);
-  message = message.slice(n + bits.length)
+  var strBits = bits.toString();
+  var n = str.indexOf(strBits);
+  message = message.slice(n + strBits.length)
 
   // Create message
-  var strMessage = displayName + " hat " + bits + " spendiert!";
+  var strMessage = displayName + " hat " + strBits + " spendiert!";
   // Append custom message if given
   if (message.length > 0){
     strMessage += " - " + message;
