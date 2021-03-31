@@ -27,12 +27,14 @@ input, textarea, button, p, div, section, article, select {
 
 .event {
     background-color: transparent;
+    margin: 0.5em Auto;
 }
 
 .event-message {
     background-color: #3a414e;
     border-bottom: 8px solid #53c0a5;
     padding: 0.25em;
+    width: calc(100% - 0.5em);
 }
 
 .event-message .message{
