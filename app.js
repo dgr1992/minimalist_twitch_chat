@@ -70,24 +70,19 @@ function createTimeElement(){
   let currentDate = new Date();
   let time = (currentDate.getHours()<10?'0':'') + currentDate.getHours() + ":" + (currentDate.getMinutes()<10?'0':'') + currentDate.getMinutes();
   // Create element and add time
-  let containerTime = document.createElement("span");
-  let nodeTime = document.createTextNode (time);
-  containerTime.appendChild(nodeTime);
+  let containerTime = createSpanElement(time);
 
   return containerTime;
 }
 
 function createUserElement(username, displayName, colour){
-  let containerUser = document.createElement("span");
-  // Add user display name and set the colour
-  let nodeUserDisplayName = document.createTextNode (displayName);
-  containerUser.appendChild(nodeUserDisplayName);
+  let containerUser = createSpanElement(displayName);
   containerUser.style.color = getUserColour(username, colour);
 
   return containerUser;
 }
 
-function createMessageElement(message){
+function createSpanElement(message){
   let containerMsg = document.createElement("span");
   let nodeMsg = document.createTextNode (message);
   containerMsg.appendChild(nodeMsg);
@@ -97,6 +92,11 @@ function createMessageElement(message){
 
 function createChatMessageElement(containerTime, containerUser, containerMsg){
   // Create element to display - Format: "[Time] [userDisplayName]: [message]"
+  /*
+  <div>
+    <span>[Time]</span><span> </span><span>[userDisplayName]</span><span>: </span><span>[message]</span>
+  </div>
+  */
   var container = document.createElement("div");
   container.appendChild(containerTime);
   let space = document.createTextNode(" ");
@@ -105,6 +105,8 @@ function createChatMessageElement(containerTime, containerUser, containerMsg){
   let seperator = document.createTextNode(": ");
   container.appendChild(seperator);
   container.appendChild(containerMsg);
+
+  container.classList.value = "message";
 
   return container;
 }
@@ -124,7 +126,7 @@ client.on('message', (wat, tags, message, self) => {
   let containerUser = createUserElement(username, displayName, color);
 
   // Message
-  let containerMsg = createMessageElement(message);
+  let containerMsg = createSpanElement(message);
 
   // Create element to display
   var container = createChatMessageElement(containerTime, containerUser, containerMsg);
@@ -135,7 +137,51 @@ client.on('message', (wat, tags, message, self) => {
 });
 
 function createEventContainer(strEventType, strMessage){
-  var container = document.createElement("div");
+  /*
+  <div class="event">
+    <div class="event-background">
+      <div class="event-message">
+        <span>13:37</span><span class="message">Blechkelle hat ein Abo abgeschlossen!</span>
+      </div>
+    </div>
+    <div class="event-type">
+      <span>Sub</span>
+    </div>
+  </div>
+  */
+  var containerEvent = document.createElement("div");
+  containerMsg.classList.value = "event";
+
+  var containerEventBackground = document.createElement("div");
+  containerEventBackground.classList.value = "event-background";
+
+  // Add event-background to event
+  containerEventMessage.appendChild(containerEventBackground);
+
+  var containerEventMessage = document.createElement("div");
+  containerEventMessage.classList.value = "event-message";
+  
+  // Add the event-message to event-background
+  containerEventBackground.appendChild(containerEventMessage);
+
+  // Create time span and add to event-message
+  var containerTimeSpan = createTimeElement();
+  containerEventMessage.appendChild(containerTimeSpan);
+
+  // Create message span and add to event-message
+  var containerMessageSpan = createSpanElement(strMessage);
+  containerMessageSpan.classList.value = "message";
+  containerEventMessage.appendChild(containerMessageSpan);
+
+
+  // Event type div
+  var containerEventType = document.createElement("div");
+  containerEventType.classList.value = "event-type";
+  var containerEventTypeSpan = createSpanElement(strEventType);
+  containerEventType.appendChild(containerEventTypeSpan);
+
+  // Add event-type to event
+  containerEventMessage.appendChild(containerEventType);
   
   if (strEventType == "Sub"){
     console.log(strMessage);
@@ -150,7 +196,7 @@ function createEventContainer(strEventType, strMessage){
     console.log(strMessage);
   }
 
-  return container
+  return containerEvent;
 }
 
 client.on("subscription", (channel, username, method, message, userstate) => {

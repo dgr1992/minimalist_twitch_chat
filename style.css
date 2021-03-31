@@ -18,10 +18,42 @@ input, textarea, button, p, div, section, article, select {
     width: 100%;
     font-family: sans-serif;
     font-size: 1em;
-    padding: 0.25em;
+    padding: 0em;
+}
+
+.message {
+    margin: 0.5em Auto;
+}
+
+.event {
+    background-color: transparent;
+}
+
+.event-message {
+    background-color: #3a414e;
+    padding-left: 0.5em;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+    width: calc(100% - 0.5em);
+}
+
+.event-message .message{
+    font-weight: bold;
+    margin-left: 0.5em;
+}
+
+.event-background{
+    background-color: #53c0a5;
+    padding-bottom: 0.25em;
+}
+
+.event-type span{
+    color: #53c0a5;
+    font-size: .75em;
+    font-weight: bold;
 }
 
 .dark-mode {
-    background-color: black;
-    color: white;
+    background-color: #2a102f;
+    color: #fefefe;
 }
