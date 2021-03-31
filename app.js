@@ -130,37 +130,28 @@ client.on('message', (wat, tags, message, self) => {
 
   // Create element to display
   var container = createChatMessageElement(containerTime, containerUser, containerMsg);
-  
+
   msgsElement.prepend(container);
-  
+
   updateMessageBuffer();
 });
 
 function createEventContainer(strEventType, strMessage){
-  /*
-  <div class="event">
-    <div class="event-background">
-      <div class="event-message">
-        <span>13:37</span><span class="message">Blechkelle hat ein Abo abgeschlossen!</span>
-      </div>
-    </div>
-    <div class="event-type">
-      <span>Sub</span>
-    </div>
-  </div>
-  */
+
+  //console.log('event',strEventType,strMessage)
+
   var containerEvent = document.createElement("div");
-  containerMsg.classList.value = "event";
+  containerEvent.classList.value = "event";
 
   var containerEventBackground = document.createElement("div");
   containerEventBackground.classList.value = "event-background";
 
   // Add event-background to event
-  containerEventMessage.appendChild(containerEventBackground);
+  containerEvent.appendChild(containerEventBackground);
 
   var containerEventMessage = document.createElement("div");
   containerEventMessage.classList.value = "event-message";
-  
+
   // Add the event-message to event-background
   containerEventBackground.appendChild(containerEventMessage);
 
@@ -182,13 +173,13 @@ function createEventContainer(strEventType, strMessage){
 
   // Add event-type to event
   containerEventMessage.appendChild(containerEventType);
-  
+
   if (strEventType == "Sub"){
     console.log(strMessage);
   }
   else if (strEventType == "Sub Gift"){
     console.log(strMessage);
-  } 
+  }
   else if (strEventType == "Cheer"){
     console.log(strMessage);
   }
@@ -201,7 +192,7 @@ function createEventContainer(strEventType, strMessage){
 
 client.on("subscription", (channel, username, method, message, userstate) => {
   var strMessage = username + " stürmt mit " + viewers + " zuschauern!";
-  
+
   var container = createEventContainer("Sub", strMessage);
 
   msgsElement.prepend(container);
@@ -229,15 +220,15 @@ client.on("subgift", (channel, username, streakMonths, recipient, methods, users
 
 client.on("cheer", (channel, userstate, message) => {
   const { 'display-name': displayName } = userstate;
-  const { bits } = userstate;
+  var { bits } = userstate;
 
   // remove cheer icon an bits from message
-  var strBits = bits.toString();
-  var n = str.indexOf(strBits);
-  message = message.slice(n + strBits.length)
+  bits = bits.toString();
+  var n = message.indexOf(bits);
+  message = message.slice(n + bits.length)
 
   // Create message
-  var strMessage = displayName + " hat " + strBits + " spendiert!";
+  var strMessage = displayName + " hat " + bits + " spendiert!";
   // Append custom message if given
   if (message.length > 0){
     strMessage += " - " + message;
