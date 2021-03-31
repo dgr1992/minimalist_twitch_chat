@@ -191,7 +191,7 @@ function createEventContainer(strEventType, strMessage){
 }
 
 client.on("subscription", (channel, username, method, message, userstate) => {
-  var strMessage = username + " stürmt mit " + viewers + " zuschauern!";
+  var strMessage = username + " hat Abonniert!";
 
   var container = createEventContainer("Sub", strMessage);
 
@@ -241,7 +241,7 @@ client.on("cheer", (channel, userstate, message) => {
 });
 
 client.on("raided", (channel, username, viewers) => {
-  var strMessage = username + " stürmt mit " + viewers + " zuschauern!";
+  var strMessage = username + " stürmt mit " + viewers + " Zuschauern!";
 
   var container = createEventContainer("Raid", strMessage);
 
