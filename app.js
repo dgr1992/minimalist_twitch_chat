@@ -216,7 +216,7 @@ function createEventContainer(strEventType, strMessage) {
     containerEvent.appendChild(containerEventMessage);
 
     // Create time span and add to event-message
-    var containerTimeSpan = createDivElement();
+    var containerTimeSpan = createTimeElement();
     containerEventMessage.appendChild(containerTimeSpan);
 
     // Create message span and add to event-message
