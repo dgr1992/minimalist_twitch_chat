@@ -24,6 +24,7 @@ var dictUserColour = {};
 var dictSubGifter = {};
 var subCheckTimer = null;
 
+
 function getRandomColour() {
   var letters = '0123456789ABCDEF';
   var color = '#';
@@ -31,7 +32,7 @@ function getRandomColour() {
     color += letters[Math.floor(Math.random() * 16)];
   }
   // Regenerate if colour is black
-  if (color == '#000000'){
+  if (color == '#000000') {
     color = getRandomColour();
   }
   return color;
@@ -42,7 +43,7 @@ function toggleDarkMode() {
   element.classList.toggle("dark-mode");
 }
 
-function updateMessageBuffer(){
+function updateMessageBuffer() {
   // Count the messages and start deleting old ones after threshold is reached
   msgCounter += 1;
   if (msgCounter >= 30) {
@@ -54,11 +55,11 @@ function updateMessageBuffer(){
   }
 }
 
-function getUserColour(username, colour){
+function getUserColour(username, colour) {
   // user colour
   if (colour == null) {
     colour = dictUserColour[username];
-    if ( colour == null) {
+    if (colour == null) {
       colour = getRandomColour();
       dictUserColour[username] = colour;
     }
@@ -67,7 +68,7 @@ function getUserColour(username, colour){
   return colour;
 }
 
-function createTimeElement(){
+function createTimeElement() {
   // Create time string in the format hh:mm
   let currentDate = new Date();
 
@@ -77,29 +78,34 @@ function createTimeElement(){
   // fix time zone
   hour = (hour + addhour) % 24;
 
-  let time = (hour<10?'0':'') + hour + ":" + (minute<10?'0':'') + minute;
+  let time = (hour < 10 ? '0' : '') + hour + ":" + (minute < 10 ? '0' : '') + minute;
   // Create element and add time
   let containerTime = createSpanElement(time);
 
   return containerTime;
 }
 
-function createUserElement(username, displayName, colour){
+function createUserElement(username, displayName, colour) {
   let containerUser = createSpanElement(displayName);
   containerUser.style.color = getUserColour(username, colour);
 
   return containerUser;
 }
 
-function createSpanElement(message){
+function createSpanElement(message) {
   let containerMsg = document.createElement("span");
-  let nodeMsg = document.createTextNode (message);
+  let nodeMsg = document.createTextNode(message);
   containerMsg.appendChild(nodeMsg);
-
   return containerMsg;
 }
 
-function createChatMessageElement(containerTime, containerUser, containerMsg){
+function createUnsafeSpanElement(message) {
+  let containerMsg = document.createElement("span");
+  containerMsg.innerHTML = message;
+  return containerMsg;
+}
+
+function createChatMessageElement(containerTime, containerUser, containerMsg) {
   // Create element to display - Format: "[Time] [userDisplayName]: [message]"
   /*
   <div class="message">
@@ -113,12 +119,22 @@ function createChatMessageElement(containerTime, containerUser, containerMsg){
   container.appendChild(containerUser);
   let seperator = document.createTextNode(": ");
   container.appendChild(seperator);
+
   container.appendChild(containerMsg);
 
   container.classList.value = "message";
 
   return container;
 }
+
+/*
+remove html from message
+*/
+function sanitizeHTML(str) {
+  return str.replace(/[^\w. ]/gi, function (c) {
+    return '&#' + c.charCodeAt(0) + ';';
+  });
+};
 
 client.on('message', (wat, tags, message, self) => {
   if (self) return;
@@ -128,14 +144,17 @@ client.on('message', (wat, tags, message, self) => {
 
   if (username.includes("bot")) return;
 
+  // the cleaned html message - removed html messages
+  let cleanMessage = sanitizeHTML(message)
+
   // Time
   let containerTime = createTimeElement();
 
   // Username
   let containerUser = createUserElement(username, displayName, color);
 
-  // Message
-  let containerMsg = createSpanElement(message);
+  // Message - enriched with emotes via getMessages, based on the escaped message
+  let containerMsg = createUnsafeSpanElement(getMessageHTML(cleanMessage, tags));
 
   // Create element to display
   var container = createChatMessageElement(containerTime, containerUser, containerMsg);
@@ -145,7 +164,45 @@ client.on('message', (wat, tags, message, self) => {
   updateMessageBuffer();
 });
 
-function createEventContainer(strEventType, strMessage){
+
+function getMessageHTML(message, { emotes }) {
+
+  if (!emotes) return message;
+
+  // store all emote keywords
+  // ! you have to first scan through 
+  // the message string and replace later
+  const stringReplacements = [];
+
+  // iterate of emotes to access ids and positions
+  Object.entries(emotes).forEach(([id, positions]) => {
+    // use only the first position to find out the emote key word
+    const position = positions[0];
+    const [start, end] = position.split("-");
+    const stringToReplace = message.substring(
+      parseInt(start, 10),
+      parseInt(end, 10) + 1
+    );
+
+    stringReplacements.push({
+      stringToReplace: stringToReplace,
+      replacement: `<img style="width: 1.0001em; height: 1.0001em;" src="https://static-cdn.jtvnw.net/emoticons/v1/${id}/3.0">`,
+    });
+  });
+
+  // generate HTML and replace all emote keywords with image elements
+  const messageHTML = stringReplacements.reduce(
+    (acc, { stringToReplace, replacement }) => {
+      // obs browser doesn't seam to know about replaceAll
+      return acc.split(stringToReplace).join(replacement);
+    },
+    message
+  );
+
+  return messageHTML;
+}
+
+function createEventContainer(strEventType, strMessage) {
 
   //console.log('event',strEventType,strMessage)
 
@@ -170,7 +227,7 @@ function createEventContainer(strEventType, strMessage){
   containerEvent.appendChild(containerEventMessage);
 
   // Create time span and add to event-message
-  var containerTimeSpan = createTimeElement();
+  var containerTimeSpan = createDivElement();
   containerEventMessage.appendChild(containerTimeSpan);
 
   // Create message span and add to event-message
@@ -187,16 +244,16 @@ function createEventContainer(strEventType, strMessage){
   // Add event-type to event
   containerEvent.appendChild(containerEventType);
 
-  if (strEventType == "Sub"){
+  if (strEventType == "Sub") {
     //console.log(strMessage);
   }
-  else if (strEventType == "Sub Gift"){
+  else if (strEventType == "Sub Gift") {
     //console.log(strMessage);
   }
-  else if (strEventType == "Cheer"){
+  else if (strEventType == "Cheer") {
     //console.log(strMessage);
   }
-  else if (strEventType == "Raid"){
+  else if (strEventType == "Raid") {
     //console.log(strMessage);
   }
 
@@ -213,15 +270,15 @@ client.on("subscription", (channel, username, method, message, userstate) => {
 });
 
 
-function checkGiftSub(){
-  for (let username of Object.keys(dictSubGifter)){
-    if(dictSubGifter[username] != null)
-    var [lastAccess, count] = dictSubGifter[username];
+function checkGiftSub() {
+  for (let username of Object.keys(dictSubGifter)) {
+    if (dictSubGifter[username] != null)
+      var [lastAccess, count] = dictSubGifter[username];
 
     // if no new gifts in the last x millisecond then show message and remove user from dict
     if ((Date.now() - lastAccess) > 1000) {
       var strMessage = username + " hat " + count;
-      if (count == 1){
+      if (count == 1) {
         strMessage += " Abo verschenkt!";
       }
       else {
@@ -237,7 +294,7 @@ function checkGiftSub(){
   }
 
   // Stop timer if no more users in the dict
-  if (Object.keys(dictSubGifter).length == 0){
+  if (Object.keys(dictSubGifter).length == 0) {
     clearInterval(subCheckTimer);
   }
 }
@@ -245,7 +302,7 @@ function checkGiftSub(){
 client.on("subgift", (channel, username, streakMonths, recipient, methods, userstate) => {
   var senderDisplayName = userstate["display-name"];
   // Create dict entry
-  if (dictSubGifter[senderDisplayName] == null){
+  if (dictSubGifter[senderDisplayName] == null) {
     dictSubGifter[senderDisplayName] = [Date.now(), 0];
     // activate timer to put message after received all events for this user
     subCheckTimer = setInterval(checkGiftSub, 500);
@@ -253,7 +310,7 @@ client.on("subgift", (channel, username, streakMonths, recipient, methods, users
   }
 
   // Count number of gifts
-  if (dictSubGifter[senderDisplayName] != null){
+  if (dictSubGifter[senderDisplayName] != null) {
     var [lastAccess, count] = dictSubGifter[senderDisplayName];
     dictSubGifter[senderDisplayName] = [Date.now(), count + 1];
     //console.log("Gifter " + senderDisplayName + " add 1");
