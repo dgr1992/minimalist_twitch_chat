@@ -1,1 +1,4 @@
-Very simple twitch chat is read only. It displays time, username in colour and the message. The latest message is on top allways. The number of messages displayed is limited to 30 messages. Use ```?channel=channelname``` to set the channel that should be listend to.
+Very simple twitch chat is read only. It displays time, username in colour and the message. The latest message is on top allways. The number of messages displayed is limited to 30 messages. Use ```?channel=channelname``` to set the channel that should be listend to. It is also possible to correct the timezone by adding ```addhours=0``` to the URL. The chat also supports emotes.
+
+Example to listen to the twitch chat of [ProjektionTV](https://twitch.tv/projektiontv)  
+[https://projektiontv-codequatsch.github.io/minimalist_twitch_chat/?channel=projektiontv&addhours=0](https://projektiontv-codequatsch.github.io/minimalist_twitch_chat/?channel=projektiontv&addhours=0)
