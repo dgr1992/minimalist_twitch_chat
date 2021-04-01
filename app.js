@@ -128,10 +128,11 @@ function createChatMessageElement(containerTime, containerUser, containerMsg) {
 /*
 remove html from message
 */
-function sanitizeHTML(str) {
-    return str.replace(/[^\w. ]/gi, function (c) {
-        return '&#' + c.charCodeAt(0) + ';';
-    });
+function sanitizeHTML(text) {
+    var element = document.createElement('div');
+    element.innerText = text;
+    let result = element.innerHTML;
+    return result;
 }
 
 client.on('message', (wat, tags, message, self) => {
@@ -143,7 +144,8 @@ client.on('message', (wat, tags, message, self) => {
     if (username.includes('bot')) return;
 
     // the cleaned html message - removed html messages
-    let cleanMessage = sanitizeHTML(message);
+
+    // console.log('Clean Message', cleanMessage);
 
     // Time
     let containerTime = createTimeElement();
@@ -152,7 +154,7 @@ client.on('message', (wat, tags, message, self) => {
     let containerUser = createUserElement(username, displayName, color);
 
     // Message - enriched with emotes via getMessages, based on the escaped message
-    let containerMsg = createUnsafeSpanElement(getMessageHTML(cleanMessage, tags));
+    let containerMsg = createUnsafeSpanElement(getMessageHTML(message, tags));
 
     // Create element to display
     var container = createChatMessageElement(containerTime, containerUser, containerMsg);
@@ -163,8 +165,8 @@ client.on('message', (wat, tags, message, self) => {
 });
 
 function getMessageHTML(message, { emotes }) {
+    message = sanitizeHTML(message);
     if (!emotes) return message;
-
     // store all emote keywords
     // ! you have to first scan through
     // the message string and replace later
