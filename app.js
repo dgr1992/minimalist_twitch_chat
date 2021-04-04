@@ -15,7 +15,7 @@ const client = new tmi.Client({
 });
 
 client.connect().then(() => {
-    statusElement.textContent = `Listening for messages in ${channel}...`;
+    console.log(`Listening for messages in ${channel}...`);
 });
 
 let users = {};
@@ -47,9 +47,9 @@ function updateMessageBuffer() {
     msgCounter += 1;
     if (msgCounter >= 30) {
         msgsElement.removeChild(msgsElement.lastChild);
-        countElement.textContent = msgCounter + ' | 30';
+        //console.log(msgCounter + ' | 30');
     } else {
-        countElement.textContent = msgCounter + ' | ' + msgCounter;
+        //console.log(msgCounter + ' | ' + msgCounter);
     }
 }
 
